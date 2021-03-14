@@ -40,48 +40,34 @@ nultimos a [] = []
 nultimos n xs = if length xs == n then xs else nultimos n (remove_init xs)
 
 --ex7--
-power :: Int -> Int -> Int 
-power a 0 = 1
-power a b = a*(power a (b-1))
-
-strParaInt :: String -> Int
-strParaInt [] = 0
-strParaInt (x:xs)
-    |x == '0' = aux*0 + binParaInt xs
-    |x == '1' = aux*1 + binParaInt xs
-    |x == '2' = aux*2 + binParaInt xs
-    |x == '3' = aux*3 + binParaInt xs
-    |x == '4' = aux*4 + binParaInt xs
-    |x == '5' = aux*5 + binParaInt xs
-    |x == '6' = aux*6 + binParaInt xs
-    |x == '7' = aux*7 + binParaInt xs
-    |x == '8' = aux*8 + binParaInt xs
-    |x == '9' = aux*9 + binParaInt xs
-    where aux = (power 10 (length xs))
-
-charParaInt :: Char  -> Int 
-charParaInt x
-    |x == '0' = 0
-    |x == '1' = 1
-    |x == '2' = 2
-    |x == '3' = 3
-    |x == '4' = 4
-    |x == '5' = 5
-    |x == '6' = 6
-    |x == '7' = 7
-    |x == '8' = 8
-    |x == '9' = 9
 
 binParaInt :: String -> Int
-binParaInt [] = 0
-binParaInt (x:xs) = (charParaInt x)*(power 2 (length xs)) + binParaInt xs
+binParaInt "0" = 
+    0
+binParaInt "1" = 
+    1
+binParaInt ('0':xs) =
+    binParaInt xs
+binParaInt ('1':xs) =
+    2 ^ length xs + binParaInt xs
+binParaInt xs = 
+    error "Valor não representa um numero binário!"
+
 
 --ex8--
-intParaBin :: Int -> String
-intParaBin 1 = ""
-intParaBin n 
-    |mod n 2 == 1 = '1':intParaBin (div n 2)
-    |mod n 2 == 0 = '0':intParaBin (div n 2)
+intParaBin :: Integer -> String 
+intParaBin i =
+    let divisao = i `div` 2 in
+    if divisao > 0 then 
+        if i `mod` 2 == 0 then
+            concatena (intParaBin divisao) "0"
+        else
+            concatena (intParaBin divisao) "1"
+    else
+        if i `mod` 2 == 0 then
+            "0"
+        else
+            "1" 
 
 --ex9--
 menorValor :: Ord a => [a] -> a
@@ -108,10 +94,6 @@ dobrar_esq f a [] = a
 dobrar_esq f a (x:xs) = dobrar_esq f (f a x) xs
 
 --ex14--
--- funcao para teste
-par :: Integral a => a -> Bool
-par n = if mod n 2 == 0 then True else False
-
 --Escreva uma função que filtre uma lista, retornando os elementos que satisfazem um predicado:
 filtrar :: (a -> Bool) -> [a] -> [a]
 filtrar f [] = []
@@ -133,31 +115,36 @@ mapear :: (a -> b) -> [a] -> [b]
 mapear f [] = []
 mapear f (x:xs) = f x:mapear f xs
 
+--ex17--
+retirar :: (a, b) -> a
+retirar (a,b) = a
 
+primeiros :: [(a, b)] -> [a]
+primeiros [] = [] 
+primeiros xs = mapear retirar xs
 
-main :: IO ()
-main = do
-    print (concatena [1,2,3,4] [6,45,32])
-    --print (pertence 8 [6,9,5,7,10])
-    --print(intersecao [1,2,5,6,18] [18,3,9,10,1,5,6])
-    --print(inverso [1,35,69,14,2])
-    --print(nprimeiros 4 [1,2,5,6,18,3,9,10,1,5,6])
-    --print(nultimos 4 [1,2,5,6,18,3,9,10,1,5,6])
-    --print(strParaInt "0112654861")
-    --print(binParaInt "1001010110")
-    --print(intParaBin 45)
-    --print(menorValor [4,5,0,8,9,1,65])
-    --print(removerPrimeiro [1,5,8,9,32,14,65,98] 5)
-    --print(ordenar [8,9,8,5,7,9,2,5,79,54])
-    --print(remove_last [151,515,15,15,8948])
-    --print(dobrar_dir (+) 0 [1..8])
-    --print(dobrar_esq (+) 0 [1..8])
-    --print(par 9)
-    --print(filtrar par [2,5,8,9,56,4,65,59])
-    --print(impar 8)
-    --print(impares [2,5,8,9,56,4,65,59])
-    --print(map (+7) [2,5,8,9,56,4,65,59])
-    --print(primeiros [(1,2),(2,3),(4,5)])
-    --print(todos [True, True, True, True])
+--ex18--
+todos :: [Bool] -> Bool
+todos [] = True
+todos (x:xs) = if x == True then todos xs else False
 
+--Tree--
+data Tree a = Leaf a | Branch a (Tree a) (Tree a)
 
+--ex19--
+ler :: Tree a -> [a]
+ler (Leaf a) = [a]
+ler (Branch a esq dir) = ler esq ++ [a] ++ ler dir
+
+maiorValor :: Ord a => [a] -> a 
+maiorValor [a] = a
+maiorValor (x:xs) = if x>maiorValor xs then x else maiorValor xs
+
+maior :: Ord a => Tree a -> a
+maior a = maiorValor(ler(a))
+
+--ex20--
+
+altura :: Tree a -> Int
+altura (Leaf a) = 1
+altura (Branch a esq dir) = if altura esq > altura dir then (altura esq + 1) else (altura dir + 1)
