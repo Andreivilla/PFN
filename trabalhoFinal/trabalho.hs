@@ -32,21 +32,8 @@ typee :: Parser Type
 typee =
         try typearrow <|> typevar <|> typeint
 
---Para sua implementação, duas funções auxiliares são necessárias, que respectivamente verificam se uma variável aparece livre em um tipo, e que compõe duas unificações distintas.
-occursCheck :: Name -> Type -> Bool
-occursCheck x (TypeVar y) = 
-        False
---occursCheck x 
---occursCheck x
 
---compose :: Unifier -> Unifier -> Unifier
-
-{--O programa deve então solicitar ao usuário dois tipos e informar se tais tipos podem ser unificados, 
-informando qual o unificador mais geral, ou se a unificação não pode ser feita. Para tal, recomenda-se a 
-utilização da biblioteca Parsec para a implementação de um simples parser para interpretar os tipos de 
-entrada.--}
-
---A estrutura principal do programa se dá através da função main:
+{--
 main :: IO ()
 main = do        
         a <- getLine
@@ -55,26 +42,54 @@ main = do
                         print typee
                 _->
                         putStrLn "erro"
-
-
-
-
-{--
---A função principal para unificação receberá dois tipos e tentará retornar um unificador mais geral na forma de Just mgu, retornando Nothing caso não seja possível unificar.
-unify :: Type -> Type -> Maybe Unifier
-
---Para sua implementação, duas funções auxiliares são necessárias, que respectivamente verificam se uma variável aparece livre em um tipo, e que compõe duas unificações distintas.
-occursCheck :: Name -> Type -> Bool
-compose :: Unifier -> Unifier -> Unifier
-
---A fim de se testar o sistema, uma função deve ser implementada capaz de aplicar uma substituição a um tipo arbitrário, retornando um novo tipo.
-subst :: Unifier -> Type -> Type
-
---Considere também as seguintes funções para o reconhecimento de texto, definindo a seguinte gramática para tipos:
-parseType :: Parser Type     -- type: function | atom
-parseAtom :: Parser Type     -- atom: int | var | paren
-parseInt :: Parser Type      -- int: "Int"
-parseVar :: Parser Type      -- var: lowercase+
-parseFun :: Parser Type      -- fun: atom "->" type
-parseParen :: Parser Type    -- paren: "(" type ")"
 --}
+--A estrutura principal do programa se dá através da função main:
+main :: IO ()
+main = do
+        putStrLn "Digite um termo:"
+        a <- getLine
+        let Right ta = parse typee "<stdin>" a
+        
+        --
+        putStrLn "Digite outro termo:"
+
+        -- Bug do repl.it! Lê uma linha extra...
+        --getLine -- Remova se compilar localmente...
+
+        b <- getLine
+        -- Assume que o parsing deu certo!
+        let Right tb = parse typee "<stdin>" b
+        --
+        putStrLn "Unificação:"
+        print ta
+        print tb
+        print $ unify ta tb
+
+
+
+--A função principal para unificação receberá dois tipos e tentará retornar um unificador mais geral na forma de 
+--Just mgu, retornando Nothing caso não seja possível unificar.
+unify :: Type -> Type -> Maybe Unifier
+unify (TypeVar a) (TypeVar b) | a == b = Just []
+unify TypeInt TypeInt = Just []
+--unify _ _ = Nothing
+
+unify (TypeVar a) b = if occursCheck a b then Nothing else Just [(a, b)]
+unify b (TypeVar a) = if occursCheck a b then Nothing else Just [(a, b)]
+unify (TypeVar x) (TypeArrow a b) = if occursCheck x (TypeArrow a b) == True then Nothing else Just [(x,a)]
+
+
+unifyarrow _ _ = [] 
+
+--Para sua implementação, duas funções auxiliares são necessárias, que respectivamente 
+--verificam se uma variável aparece livre em um tipo, e que compõe duas unificações distintas.
+occursCheck :: Name -> Type -> Bool
+occursCheck x (TypeInt) = False
+occursCheck x (TypeVar y) = x == y
+occursCheck x (TypeArrow y xs) = if occursCheck x y then True else occursCheck x xs
+
+--compose :: Unifier -> Unifier -> Unifier
+--compose x y = x
+
+
+
