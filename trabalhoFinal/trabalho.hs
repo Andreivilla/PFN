@@ -63,6 +63,10 @@ main = do
     print $ unify ta tb
 
 
+{-
+  A função principal para unificação receberá dois tipos e tentará retornar um unificador mais geral na forma de Just mgu,
+  retornando Nothing caso não seja possível unificar.
+-}
 unify :: Type -> Type -> Maybe Unifier
 unify (TypeVar a) (TypeVar b) | a == b = Just []
 unify TypeInt TypeInt = Just []
@@ -73,13 +77,18 @@ unify (TypeArrow a b) (TypeArrow x y) =
         Just t1 ->
             case unify (subst t1 b) (subst t1 y) of
                 Just t2 ->
-                    Just (compose t1 t2)
+                    Just (compose t2 t1)
                 Nothing ->
                     Nothing
         Nothing ->
             Nothing
 unify _ _ = Nothing
 
+
+{-
+  A fim de se testar o sistema, uma função deve ser implementada capaz de aplicar uma substituição a um tipo arbitrário,
+  retornando um novo tipo.
+-}
 subst :: Unifier -> Type -> Type
 subst x TypeInt = TypeInt
 subst x (TypeVar a) =
@@ -90,11 +99,27 @@ subst x (TypeVar a) =
             TypeVar a
 subst x (TypeArrow a b) = TypeArrow a (subst x b)
 
-
+{-
+  A função occursCheck verifica se uma variável aparece livre em um tipo.
+-}
 occursCheck :: Name -> Type -> Bool
-occursCheck x (TypeInt) = False
+occursCheck x TypeInt = False
 occursCheck x (TypeVar y) = x == y
 occursCheck x (TypeArrow a b) = occursCheck x a || occursCheck x b
 
+{-
+  A função compose compõe duas unificações distintas.
+-}
 compose :: Unifier -> Unifier -> Unifier
-compose x y = x ++ y
+compose xs ys = 
+    xs ++ subsUni xs ys
+
+subsUni :: Unifier -> Unifier -> Unifier
+subsUni xs ys =
+    let substOnTuple (name, term) =
+            (name, subst xs term)
+    in mapear substOnTuple ys
+
+mapear :: (a -> b) -> [a] -> [b]
+mapear f [] = []
+mapear f (x:xs) = f x:mapear f xs
